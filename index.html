@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nourish Phoenix — Food Access & Health Navigator</title>
+  <meta name="description" content="Food access and diabetes prevention navigator for Phoenix's Native American community and all underserved residents of Maricopa County.">
+
+  <!-- Leaflet map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark">🌵</div>
+        <div class="logo-text">
+          <span class="logo-title">Nourish Phoenix</span>
+          <span class="logo-sub">Food Access + Health Navigator · Maricopa County</span>
+        </div>
+      </div>
+      <div class="header-tags">
+        <span class="tag">Native American Health Focus</span>
+        <span class="tag">Open Data</span>
+        <a href="https://github.com/yourusername/nourish-phoenix" class="tag tag-github" target="_blank" rel="noopener">
+          ★ GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- APP BODY -->
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+      <nav class="nav-tabs">
+        <button class="ntab active" data-tab="map" onclick="switchTab('map',this)">Map Layers</button>
+        <button class="ntab" data-tab="resources" onclick="switchTab('resources',this)">Resources</button>
+        <button class="ntab" data-tab="risk" onclick="switchTab('risk',this)">Diabetes Risk</button>
+      </nav>
+
+      <!-- MAP LAYERS TAB -->
+      <div class="tab-content active" id="tab-map">
+        <div class="sidebar-section">
+          <div class="section-label">Show on map</div>
+
+          <button class="layer-btn active" id="btn-desert" onclick="toggleLayer('desert', this)">
+            <span class="layer-dot" style="background:#C4623A;"></span>
+            <span>Food apartheid zones</span>
+            <span class="layer-count" id="cnt-desert"></span>
+          </button>
+          <button class="layer-btn active" id="btn-grocery" onclick="toggleLayer('grocery', this)">
+            <span class="layer-dot" style="background:#6B8C6B;"></span>
+            <span>SNAP grocery stores</span>
+            <span class="layer-count" id="cnt-grocery"></span>
+          </button>
+          <button class="layer-btn active" id="btn-clinic" onclick="toggleLayer('clinic', this)">
+            <span class="layer-dot" style="background:#C9973A;"></span>
+            <span>Native health clinics</span>
+            <span class="layer-count" id="cnt-clinic"></span>
+          </button>
+          <button class="layer-btn active" id="btn-pantry" onclick="toggleLayer('pantry', this)">
+            <span class="layer-dot" style="background:#4A7FA5;"></span>
+            <span>Food pantries</span>
+            <span class="layer-count" id="cnt-pantry"></span>
+          </button>
+          <button class="layer-btn" id="btn-transit" onclick="toggleLayer('transit', this)">
+            <span class="layer-dot" style="background:#8FBDD3;"></span>
+            <span>Light rail / transit</span>
+            <span class="layer-count" id="cnt-transit"></span>
+          </button>
+        </div>
+
+        <div class="stats-strip">
+          <div class="stat-box">
+            <div class="stat-val">43%</div>
+            <div class="stat-lab">of urban Native residents in food apartheid zones</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">2.1mi</div>
+            <div class="stat-lab">avg distance to nearest SNAP store in low-income tracts</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">21%</div>
+            <div class="stat-lab">diabetes rate among AZ Native Americans vs 8% statewide</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">50k+</div>
+            <div class="stat-lab">Native Americans in Maricopa County</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-label">About this map</div>
+          <p class="about-text">
+            "Food desert" is the official term, but many Indigenous advocates prefer <strong>food apartheid</strong> — because lack of access is a policy-driven injustice, not a natural feature. Orange zones show census tracts where low-income residents live more than 1 mile from a supermarket. Darker zones indicate severe gaps. Data: USDA Food Access Research Atlas + Maricopa County GIS.
+          </p>
+        </div>
+      </div>
+
+      <!-- RESOURCES TAB -->
+      <div class="tab-content" id="tab-resources">
+        <div class="filter-bar">
+          <input type="text" id="search-input" class="search-input" placeholder="Search resources…" oninput="filterResources()">
+          <div class="filter-tabs">
+            <button class="ftab active" data-filter="all" onclick="setFilter('all',this)">All</button>
+            <button class="ftab" data-filter="clinic" onclick="setFilter('clinic',this)">Clinics</button>
+            <button class="ftab" data-filter="pantry" onclick="setFilter('pantry',this)">Pantries</button>
+            <button class="ftab" data-filter="grocery" onclick="setFilter('grocery',this)">Groceries</button>
+          </div>
+        </div>
+        <div class="resource-list" id="resource-list"></div>
+      </div>
+
+      <!-- RISK TAB -->
+      <div class="tab-content" id="tab-risk">
+        <div class="risk-tool">
+          <div class="section-label">Diabetes risk self-check</div>
+          <p class="about-text" style="margin-bottom:14px;">
+            This is not a diagnosis. Use it to decide whether to seek a free A1C screening at a nearby clinic.
+          </p>
+
+          <label class="risk-label">Age</label>
+          <select class="risk-input" id="r-age">
+            <option value="0">Under 40</option>
+            <option value="1">40–49</option>
+            <option value="2">50–59</option>
+            <option value="3">60+</option>
+          </select>
+
+          <label class="risk-label">Family history of diabetes?</label>
+          <select class="risk-input" id="r-family">
+            <option value="0">No / don't know</option>
+            <option value="2">Yes — parent or sibling</option>
+          </select>
+
+          <label class="risk-label">How often do you eat fast food or packaged snacks?</label>
+          <select class="risk-input" id="r-diet">
+            <option value="0">Rarely</option>
+            <option value="1">Sometimes (a few times/week)</option>
+            <option value="2">Often (daily)</option>
+          </select>
+
+          <label class="risk-label">Physical activity</label>
+          <select class="risk-input" id="r-activity">
+            <option value="0">Active (30+ min most days)</option>
+            <option value="1">Moderate</option>
+            <option value="2">Low / sedentary</option>
+          </select>
+
+          <label class="risk-label">Do you identify as Native American / Indigenous?</label>
+          <select class="risk-input" id="r-native">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+
+          <button class="risk-btn" onclick="calcRisk()">Check my risk →</button>
+          <div class="risk-result" id="risk-result"></div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAP CONTAINER -->
+    <main class="map-area">
+      <div id="map"></div>
+
+      <!-- Floating stats badge -->
+      <div class="float-badge">
+        <div class="fb-stat">2.3×</div>
+        <div class="fb-label">higher diabetes risk for Native Americans in Phoenix</div>
+      </div>
+
+      <!-- Mobile sidebar toggle -->
+      <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Toggle sidebar">☰</button>
+    </main>
+
+  </div>
+
+  <!-- Data + App logic -->
+  <script src="data/resources.js"></script>
+  <script src="data/zones.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
